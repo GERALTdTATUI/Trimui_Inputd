@@ -1,5 +1,6 @@
 #define _DEFAULT_SOURCE
 #include "smart_pro.h"
+#include "smart_pro_mapping.h"
 
 #include <errno.h>
 #include <poll.h>
@@ -58,9 +59,10 @@ static void emit_buttons_from_map(struct gamepad *gp, uint8_t btn_raw, uint8_t d
         uint8_t mask = map[i].mask;
         if (diff & mask) {
             int pressed = (btn_raw & mask) ? 1 : 0;
-            bool handled = turbo_note_physical(turbo, turbo_count, map[i].code, pressed != 0);
+            unsigned short code = smart_pro_mapping_button_code(map[i].name, map[i].code);
+            bool handled = turbo_note_physical(turbo, turbo_count, code, pressed != 0);
             if (!handled) {
-                gamepad_emit_key(gp, map[i].code, pressed);
+                gamepad_emit_key(gp, code, pressed);
                 device_dirty_mark(dirty);
             }
         }
@@ -96,7 +98,7 @@ static void process_left_frame_bytes(struct smart_pro_left_ctx *ctx, const uint8
     if (diff) {
         device_hat_apply_masks(&ctx->hat, btn_raw, diff, SP_BTN_DPAD_UP_MASK, SP_BTN_DPAD_DOWN_MASK, SP_BTN_DPAD_LEFT_MASK, SP_BTN_DPAD_RIGHT_MASK);
         if (diff & SP_BTN_L2_MASK) { //If one of the buttons pressed match the L2 mask_id, it calls the emit_trigger_axis setting Z axis high
-            emit_trigger_axis(ctx->c.gp, ABS_Z, (btn_raw & SP_BTN_L2_MASK) != 0, dirty);
+            emit_trigger_axis(ctx->c.gp, smart_pro_mapping_trigger_axis_code("L2", ABS_Z), (btn_raw & SP_BTN_L2_MASK) != 0, dirty);
         }
         emit_buttons_from_map(ctx->c.gp, btn_raw, diff, SP_LEFT_BUTTON_MAP, SP_LEFT_BUTTON_MAP_COUNT, dirty, turbo, turbo_count);
 
@@ -130,7 +132,7 @@ static void process_right_frame_bytes(struct smart_pro_right_ctx *ctx, const uin
 
     if (diff) {
         if (diff & SP_BTN_R2_MASK) { //If one of the buttons pressed match the R2 mask_id, it calls the emit_trigger_axis setting RZ axis high
-            emit_trigger_axis(ctx->c.gp, ABS_RZ, (btn_raw & SP_BTN_R2_MASK) != 0, dirty);
+            emit_trigger_axis(ctx->c.gp, smart_pro_mapping_trigger_axis_code("R2", ABS_RZ), (btn_raw & SP_BTN_R2_MASK) != 0, dirty);
         }
         emit_buttons_from_map(ctx->c.gp, btn_raw, diff, SP_RIGHT_BUTTON_MAP, SP_RIGHT_BUTTON_MAP_COUNT, dirty, turbo, turbo_count);
     }
@@ -143,6 +145,10 @@ static void process_right_frame_bytes(struct smart_pro_right_ctx *ctx, const uin
 
 int smart_pro_init(void **ctx, struct gamepad *gp, struct axis_state *lx, struct axis_state *ly, struct axis_state *rx, struct axis_state *ry, bool verbose)
 {
+    if (smart_pro_mapping_load() < 0) {
+        fprintf(stderr, "Smart Pro: mapping file has invalid entries; valid entries were applied\n");
+    }
+
     if (smart_pro_gpio_init() < 0) {
         return -1;
     }

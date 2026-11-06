@@ -45,19 +45,19 @@ enum {
 
 /* Map left-hand packed button bits to uinput codes. */
 static const struct sp_button_map_entry SP_LEFT_BUTTON_MAP[] = {
-    {SP_BTN_L1_MASK, BTN_TL},
-    {SP_BTN_MODE_MASK, BTN_MODE},
+    {SP_BTN_L1_MASK, BTN_TL, "L1"},
+    {SP_BTN_MODE_MASK, BTN_MODE, "MODE"},
 };
 
 /* Map right-hand packed button bits to uinput codes. */
 static const struct sp_button_map_entry SP_RIGHT_BUTTON_MAP[] = {
-    {SP_BTN_R1_MASK, BTN_TR},
-    {SP_BTN_Y_MASK, BTN_NORTH},
-    {SP_BTN_X_MASK, BTN_WEST},
-    {SP_BTN_B_MASK, BTN_SOUTH},
-    {SP_BTN_A_MASK, BTN_EAST},
-    {SP_BTN_SELECT_MASK, BTN_SELECT},
-    {SP_BTN_START_MASK, BTN_START},
+    {SP_BTN_R1_MASK, BTN_TR, "R1"},
+    {SP_BTN_Y_MASK, BTN_NORTH, "Y"},
+    {SP_BTN_X_MASK, BTN_WEST, "X"},
+    {SP_BTN_B_MASK, BTN_SOUTH, "B"},
+    {SP_BTN_A_MASK, BTN_EAST, "A"},
+    {SP_BTN_SELECT_MASK, BTN_SELECT, "SELECT"},
+    {SP_BTN_START_MASK, BTN_START, "START"},
 };
 
 /* Utility counts for iterating Smart Pro maps. */

@@ -48,6 +48,7 @@ struct smart_pro_right_ctx {
 struct sp_button_map_entry {
     uint8_t mask;
     unsigned short code;
+    const char *name;
 };
 
 static const struct turbo_binding_cfg SP_TURBO_CFG[] = {
@@ -56,9 +57,7 @@ static const struct turbo_binding_cfg SP_TURBO_CFG[] = {
     {TURBO_FLAG_PREFIX "x", BTN_WEST},
     {TURBO_FLAG_PREFIX "y", BTN_NORTH},
     {TURBO_FLAG_PREFIX "l", BTN_TL},
-    {TURBO_FLAG_PREFIX "l2", BTN_TL2},
     {TURBO_FLAG_PREFIX "r", BTN_TR},
-    {TURBO_FLAG_PREFIX "r2", BTN_TR2},
 };
 
 enum { SP_TURBO_CFG_COUNT = sizeof(SP_TURBO_CFG) / sizeof(SP_TURBO_CFG[0]) };
