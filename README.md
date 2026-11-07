@@ -9,6 +9,7 @@ User-space input daemon for the Trimui family (Smart Pro, Smart Pro S, Brick). I
 - Rumble for A133-based units through the GPIO 227 and Smart Pro S PWM-vibrator backends.
 - Upstream joystick calibration files with per-axis min/max/center values and normalized deadzone support.
 - Learned calibration fallback when no upstream calibration file is available.
+- Support for button remap functions using configuration files.
 
 ## Building
 
@@ -73,6 +74,7 @@ R2=ABS_RZ # Only Trimui Smart PRO sees R2 as axis, and cant just be mapped to L2
 
 ```
 
+- Alternative remapping function using `/tmp/trimui_inputd/swap_ab` and `/tmp/trimui_inputd/swap_xy`: In orther to improve compatibility with previous Trimui Smart PRO FW versions, that creates files into `/tmp/trimui_inputd/` folder to use as variables, a functon to monitor the existance of a `swap_ab` file were added to remap the A and B inputs. Also a new function to invert X and Y were added, wich monitors the existance of a `swap_xy` file. The main remap config file on `/mnt/UDISK/trimui_inputd.conf` sets a global remap configuration which is set at the startup of the daemon and will be fixed until deamon gets restarted. The `/tmp/trimui_inputd/swap_*` file are dinamically monitored and it's changes take affect without the need to restart the daemon. Also, the `swap_*` files inverts the logic set by the default config file, so if a inverted A/B remap were set on `/mnt/UDISK/trimui_inputd.conf`, creating a `swap_ab` file would revert the configuration.
 - `BRICK_ACTIVE_LOW=0` forces Brick buttons to be treated as active-high (defaults to active-low).
 - Joystick calibration lookup checks the first available file in this order: `/etc/trimui/joypad*.config`, `/userdata/system/joypad*.config` (Batocera), then `/mnt/UDISK/joypad*.config` (stock BSP). The concrete filenames are `joypad.config` for the left stick and `joypad_right.config` for the right stick. Override the paths with `TRIMUI_JOYPAD_CONFIG` and `TRIMUI_JOYPAD_RIGHT_CONFIG`. Each file uses `x_min`, `x_max`, `y_min`, `y_max`, `x_zero`, `y_zero`, and a normalized `deadzone` (for example `0.10`). Missing files retain the learned calibration fallback.
 - Rumble uses GPIO 227 on the A133 backend and the PWM-vibrator backend on Smart Pro S.

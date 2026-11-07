@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define SP_MAPPING_MAX_OVERRIDES 16
 
@@ -148,11 +149,46 @@ int smart_pro_mapping_load(void)
     return result;
 }
 
+/*
+ * Legacy-compatible runtime face-button swaps.
+ *
+ * These flags are intentionally checked at use time (rather than during
+ * smart_pro_mapping_load), so creating/removing a flag takes effect without
+ * restarting the daemon. They are applied after the static config override,
+ * making swap flags authoritative over trimui_inputd.conf.
+ */
+static unsigned short apply_face_button_swaps(unsigned short code)
+{
+    if (access("/tmp/trimui_inputd/swap_ab", F_OK) == 0) {
+        if (code == BTN_EAST) code = BTN_SOUTH;
+        else if (code == BTN_SOUTH) code = BTN_EAST;
+    }
+
+    if (access("/tmp/trimui_inputd/swap_xy", F_OK) == 0) {
+        if (code == BTN_WEST) code = BTN_NORTH;
+        else if (code == BTN_NORTH) code = BTN_WEST;
+    }
+
+    if (access("/tmp/trimui_inputd/swap_lr", F_OK) == 0) {
+        if (code == BTN_TL) code = BTN_TR;
+        else if (code == BTN_TR) code = BTN_TL;
+    }
+    
+    return code;
+}
+
 unsigned short smart_pro_mapping_button_code(const char *button, unsigned short default_code)
 {
-    for (size_t i = 0; i < button_override_count; ++i)
-        if (strcmp(button_overrides[i].name, button) == 0) return button_overrides[i].code;
-    return default_code;
+    unsigned short code = default_code;
+
+    for (size_t i = 0; i < button_override_count; ++i) {
+        if (strcmp(button_overrides[i].name, button) == 0) {
+            code = button_overrides[i].code;
+            break;
+        }
+    }
+
+    return apply_face_button_swaps(code);
 }
 
 unsigned short smart_pro_mapping_trigger_axis_code(const char *trigger, unsigned short default_code)
