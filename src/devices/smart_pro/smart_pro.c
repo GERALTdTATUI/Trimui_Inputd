@@ -97,8 +97,13 @@ static void process_left_frame_bytes(struct smart_pro_left_ctx *ctx, const uint8
 
     if (diff) {
         device_hat_apply_masks(&ctx->hat, btn_raw, diff, SP_BTN_DPAD_UP_MASK, SP_BTN_DPAD_DOWN_MASK, SP_BTN_DPAD_LEFT_MASK, SP_BTN_DPAD_RIGHT_MASK);
-        if (diff & SP_BTN_L2_MASK) { //If one of the buttons pressed match the L2 mask_id, it calls the emit_trigger_axis setting Z axis high
-            emit_trigger_axis(ctx->c.gp, smart_pro_mapping_trigger_axis_code("L2", ABS_Z), (btn_raw & SP_BTN_L2_MASK) != 0, dirty);
+        if (diff & SP_BTN_L2_MASK) {
+            unsigned short axis_code = smart_pro_mapping_trigger_axis_code("L2", ABS_Z);
+            bool pressed = (btn_raw & SP_BTN_L2_MASK) != 0;
+            /* Use the remapped output axis to select the logical turbo binding. */
+            if (!turbo_note_physical(turbo, turbo_count, axis_code, pressed)) {
+                emit_trigger_axis(ctx->c.gp, axis_code, pressed, dirty);
+            }
         }
         emit_buttons_from_map(ctx->c.gp, btn_raw, diff, SP_LEFT_BUTTON_MAP, SP_LEFT_BUTTON_MAP_COUNT, dirty, turbo, turbo_count);
 
@@ -131,8 +136,13 @@ static void process_right_frame_bytes(struct smart_pro_right_ctx *ctx, const uin
     }
 
     if (diff) {
-        if (diff & SP_BTN_R2_MASK) { //If one of the buttons pressed match the R2 mask_id, it calls the emit_trigger_axis setting RZ axis high
-            emit_trigger_axis(ctx->c.gp, smart_pro_mapping_trigger_axis_code("R2", ABS_RZ), (btn_raw & SP_BTN_R2_MASK) != 0, dirty);
+        if (diff & SP_BTN_R2_MASK) {
+            unsigned short axis_code = smart_pro_mapping_trigger_axis_code("R2", ABS_RZ);
+            bool pressed = (btn_raw & SP_BTN_R2_MASK) != 0;
+            /* Use the remapped output axis to select the logical turbo binding. */
+            if (!turbo_note_physical(turbo, turbo_count, axis_code, pressed)) {
+                emit_trigger_axis(ctx->c.gp, axis_code, pressed, dirty);
+            }
         }
         emit_buttons_from_map(ctx->c.gp, btn_raw, diff, SP_RIGHT_BUTTON_MAP, SP_RIGHT_BUTTON_MAP_COUNT, dirty, turbo, turbo_count);
     }
@@ -207,7 +217,14 @@ int smart_pro_init(void **ctx, struct gamepad *gp, struct axis_state *lx, struct
     rb_init(&dev->left.c.rb);
     rb_init(&dev->right.c.rb);
     dev->turbo_count = SP_TURBO_CFG_COUNT;
-    turbo_init_bindings(dev->turbo, dev->turbo_count, SP_TURBO_CFG);
+    struct turbo_binding_cfg turbo_cfg[SP_TURBO_CFG_COUNT];
+    for (size_t i = 0; i < SP_TURBO_CFG_COUNT; ++i) {
+        /* Turbo flags describe logical outputs, so their output codes stay canonical.
+         * Physical controls are mapped before turbo_note_physical() is called.
+         */
+        turbo_cfg[i] = SP_TURBO_CFG[i];
+    }
+    turbo_init_bindings(dev->turbo, dev->turbo_count, turbo_cfg);
     dev->pfds[0] = (struct pollfd){.fd = fd_left, .events = POLLIN};
     dev->pfds[1] = (struct pollfd){.fd = fd_right, .events = POLLIN};
 

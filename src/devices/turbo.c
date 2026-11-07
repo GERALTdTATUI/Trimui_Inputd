@@ -12,7 +12,7 @@ static void turbo_reset_state(struct turbo_state *st)
 static struct turbo_binding *find_binding(struct turbo_binding *bindings, size_t count, unsigned short code)
 {
     for (size_t i = 0; i < count; ++i) {
-        if (bindings[i].code == code) {
+        if (bindings[i].physical_code == code) {
             return &bindings[i];
         }
     }
@@ -24,6 +24,9 @@ void turbo_init_bindings(struct turbo_binding *bindings, size_t count, const str
     for (size_t i = 0; i < count; ++i) {
         bindings[i].flag_path = cfgs[i].flag_path;
         bindings[i].code = cfgs[i].code;
+        bindings[i].output_type = cfgs[i].output_type;
+        bindings[i].output_max = cfgs[i].output_max;
+        bindings[i].physical_code = cfgs[i].physical_code ? cfgs[i].physical_code : cfgs[i].code;
         memset(&bindings[i].state, 0, sizeof(bindings[i].state));
         bindings[i].last_output = false;
         bindings[i].was_active = false;
@@ -33,7 +36,7 @@ void turbo_init_bindings(struct turbo_binding *bindings, size_t count, const str
 bool turbo_manages_code(const struct turbo_binding *bindings, size_t count, unsigned short code)
 {
     for (size_t i = 0; i < count; ++i) {
-        if (bindings[i].code == code) {
+        if (bindings[i].physical_code == code) {
             return true;
         }
     }
@@ -94,7 +97,13 @@ void turbo_process_frame(struct turbo_binding *bindings, size_t count, struct ga
         }
 
         if (desired_down != binding->last_output) {
-            gamepad_emit_key(gp, binding->code, desired_down ? 1 : 0);
+            int value = desired_down ? 1 : 0;
+            if (binding->output_type == TURBO_OUTPUT_ABS) {
+                value = desired_down ? binding->output_max : 0;
+                gamepad_emit_abs(gp, binding->code, value);
+            } else {
+                gamepad_emit_key(gp, binding->code, value);
+            }
             device_dirty_mark(dirty);
             binding->last_output = desired_down;
         }

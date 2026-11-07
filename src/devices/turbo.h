@@ -18,14 +18,25 @@ struct turbo_state {
     int frame_counter;
 };
 
+enum turbo_output_type {
+    TURBO_OUTPUT_KEY = 0,
+    TURBO_OUTPUT_ABS = 1,
+};
+
 struct turbo_binding_cfg {
     const char *flag_path;
     unsigned short code;
+    enum turbo_output_type output_type;
+    int output_max;
+    unsigned short physical_code; /* Stable identity of the physical control. */
 };
 
 struct turbo_binding {
     const char *flag_path;
     unsigned short code;
+    enum turbo_output_type output_type;
+    int output_max;
+    unsigned short physical_code;
     struct turbo_state state;
     bool last_output;
     bool was_active;
