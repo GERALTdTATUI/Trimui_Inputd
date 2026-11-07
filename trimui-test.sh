@@ -30,8 +30,8 @@ TRIMUI_BIND="${u:-build/trimui_inputd/bin/trimui_inputd}"
 
 
 echo "Compiling a bew binary"
-# docker run --privileged --rm tonistiigi/binfmt --install arm64
-# docker compose up --build
+docker run --privileged --rm tonistiigi/binfmt --install arm64
+docker compose up --build
 
 echo "Pushing binary to the device"
 sshpass -f <(printf '%s\n' $TRIMUI_PASS) ssh $TRIMUI_SSHS rm /root/trimui_inputd 2>&1 > /dev/null;

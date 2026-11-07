@@ -45,8 +45,9 @@ The daemon auto-detects the connected Trimui variant and starts polling.
 
 ## Configuration
 
-- Smart Pro button remapping reads `/mnt/UDISK/trimui_inputd.conf`; set `TRIMUI_INPUTD_CONFIG` to use another path. Lines use `CONTROL=CODE`, with `A`, `B`, `X`, `Y`, `L1`, `R1`, `SELECT`, `START`, and `MODE` as controls. Supported key codes are `BTN_EAST`, `BTN_SOUTH`, `BTN_NORTH`, `BTN_WEST`, `BTN_TL`, `BTN_TR`, `BTN_TL2`, `BTN_TR2`, `BTN_SELECT`, `BTN_START`, `BTN_MODE`, `BTN_THUMBL`, and `BTN_THUMBR`. Defaults use the Western layout (A=South, B=East, X=West, Y=North). `L2` and `R2` remain analog-style trigger axes and can be swapped with `L2=ABS_Z` / `L2=ABS_RZ` and `R2=ABS_RZ` / `R2=ABS_Z`. Lines beginning with `#` or `;` are comments. Invalid entries are logged and ignored.
-- Example:
+- Smart Pro button remapping reads `/mnt/UDISK/trimui_inputd.conf`; set `TRIMUI_INPUTD_CONFIG` to use another path. Lines use `CONTROL=CODE`, with `A`, `B`, `X`, `Y`, `L1`, `R1`, `L2`, `R2` `SELECT`, `START`, and `MODE` as controls. Supported key codes are `BTN_EAST`, `BTN_SOUTH`, `BTN_NORTH`, `BTN_WEST`, `BTN_TL`, `BTN_TR`, `BTN_TL2`, `BTN_TR2`, `BTN_SELECT`, `BTN_START`, `BTN_MODE`, `BTN_THUMBL`, and `BTN_THUMBR`. Defaults use the Western layout (A=South, B=East, X=West, Y=North). On Trimui Smart PRO `L2` and `R2` remain analog-style trigger axes, so remapping configs differ from the rest as `L2` and `R2` codes represent axis codes `ABS_Z` and `ABS_RZ` instead of button codes `BTN_TL2`, `BTN_TR2`, this means that `L2` and `R2`, right now, can just be mapped to each other, not being able to act as the other buttons.
+
+As previous said, a config mapping file can be set on a default or custom location, a normal config file would look like this example:
 
 ```ini
 # Western defaults are already active; these lines are optional.
@@ -54,14 +55,22 @@ A=BTN_SOUTH
 B=BTN_EAST
 X=BTN_WEST
 Y=BTN_NORTH
-
-# Swap the two trigger axes, if desired.
-L2=ABS_RZ
-R2=ABS_Z
+L1=BTN_TL
+R1=BTN_TR
+L2=BTN_TL2 # Only Trimui Brick and Smart PRO S accept this mappings
+Rr=BTN_TR2 # Only Trimui Brick and Smart PRO S accept this mappings
 
 # Swap Select and Mode.
-SELECT=BTN_MODE
-MODE=BTN_SELECT
+SELECT=BTN_SELECT
+START=BTN_START
+MODE=BTN_MODE
+
+#All the buttons above can be mapped into any permutation of themselves
+
+# Swap the two trigger axes, if desired.
+L2=ABS_Z  # Only Trimui Smart PRO sees L2 as axis, and cant just be mapped to R2
+R2=ABS_RZ # Only Trimui Smart PRO sees R2 as axis, and cant just be mapped to L2
+
 ```
 
 - `BRICK_ACTIVE_LOW=0` forces Brick buttons to be treated as active-high (defaults to active-low).
