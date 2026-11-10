@@ -7,17 +7,18 @@ ajuda() {
     echo "  -p        Console user password (defaults user)"
     echo "  -h        Console ip address"
     echo "  -i        Install the new binary into the system"
+    echo "  -b        Build only mode"
     exit 1
 }
 
 # O ":" antes das letras ativa o modo silencioso de erro.
 # O ":" DEPOIS de uma letra (como u: e p:) indica que essa flag EXIGE um argumento.
-while getopts ":u:p:h:i" opt; do
+while getopts ":u:p:h:i:b" opt; do
   case ${opt} in
     u ) u="${OPTARG}" ;;
     p ) p="${OPTARG}" ;;
     h ) h="${OPTARG}" ;;
-    b ) b="${OPTARG}" ;;
+    b ) BUILD_ONLY=true ;;
     i ) INSTALL=true ;;
     * ) echo "Opção inválida"; ajuda ;;
   esac
@@ -39,7 +40,13 @@ fi
 
 echo "Compiling a bew binary"
 docker run --privileged --rm tonistiigi/binfmt --install arm64
-docker compose up --build
+docker compose up --build && echo "Build complete"
+sleep 2
+
+if [ $BUILD_ONLY ]; then
+  echo "Build only mode, you can get you binary on $TRIMUI_BIND"
+  exit 0;
+fi
 
 echo "Stopping the input damon"
 sshpass -f <(printf '%s\n' $TRIMUI_PASS) ssh $TRIMUI_SSHS killall trimui_inputd 2>&1 > /dev/null; sleep 2
